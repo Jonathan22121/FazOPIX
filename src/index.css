@@ -1,68 +1,162 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* ------------------------------------------------------------------ */
+/* Variáveis globais para cores/altura das faixas                      */
+/* ------------------------------------------------------------------ */
+:root{
+  /* altura das faixas gradiente (topo/rodapé) */
+  --band-height: 500px;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* cores padrão (tema claro) */
+  --g1: #fd83c2;   /* pink-400  */
+  --g2: #a78bfa;   /* violet-400*/
+  --g3: #60a5fa;   /* sky-400   */
+
+  /* opacidade das faixas */
+  --band-opacity: 0.95;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Dark mode – ajusta só as cores do gradiente */
+html.dark:root{
+  --g1: #64748b;   /* slate-500  */
+  --g2: #475569;   /* slate-600  */
+  --g3: #334155;   /* slate-700  */
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+/* ------------------------------------------------------------------ */
+/* Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  body {
+    background: linear-gradient(135deg, #e879f9, #818cf8, #38bdf8);
+    background-attachment: fixed;
+    background-size: 200% 200%;
+    animation: gradientMove 15s ease infinite;
+    color: #0f172a;
+  }
+
+  @keyframes gradientMove {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* App background: cria as FAIXAS no topo e no rodapé                 */
+/* ------------------------------------------------------------------ */
+.app-bg{
+  min-height: 100%;
+  position: relative;
+  isolation: isolate; /* garante que ::before/::after fiquem atrás */
+}
+
+/* As faixas são pseudo-elementos fixos (não interceptam clique) */
+.app-bg::before,
+.app-bg::after{
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: var(--band-opacity);
+}
+
+/* Topo — alinhe com a altura do seu navbar (h-16 ≈ 64px) */
+.app-bg::before{
+  top: 64px;
+  height: var(--band-height);
+  background: linear-gradient(90deg, var(--g1) 0%, var(--g2) 50%, var(--g3) 100%);
+  filter: saturate(110%) contrast(105%);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* Rodapé */
+.app-bg::after{
+  bottom: 0;
+  height: calc(var(--band-height) + 30px);
+  background: linear-gradient(90deg, var(--g2) 0%, var(--g1) 50%, var(--g3) 100%);
+  filter: saturate(110%) contrast(105%);
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+/* Responsivo: faixas um pouco menores em telas pequenas */
+@media (max-width: 420px){
+  :root{ --band-height: 140px; }
+  .app-bg::before{ top: 56px; } /* se o header fica menor no mobile */
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities (suas classes utilitárias)                               */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+
+  /* Mantive suas classes utilitárias e corrigi o comentário
+     (removi o bloco antigo de .app-bg com gradiente global). */
+
+  .glass {
+    @apply bg-white/60 dark:bg-slate-600/35 backdrop-blur-xl
+           border border-white/50 dark:border-slate-900/10
+           shadow-lg rounded-2xl;
+  }
+
+  .glass-soft {
+    @apply bg-white/70 dark:bg-white/10
+           backdrop-blur-xl
+           border border-violet-300/30 dark:border-white/10
+           shadow-[0_10px_25px_-10px_rgba(0,0,0,.25)]
+           rounded-2xl;
+  }
+
+  .ring-glow {
+    @apply ring-1 ring-black/5 focus-within:ring-2 focus-within:ring-indigo-400 transition;
+  }
+
+  .muted { @apply text-slate-600 dark:text-slate-400; }
+  .price { @apply text-indigo-600 font-semibold; }
+}
+
+
+
+/* ===========================
+   ADMIN LAYOUT LIMPO E ESTÁVEL
+   =========================== */
+
+.admin-bg {
   min-height: 100vh;
+  background: #b145e2; /* slate-50 */
+  color: #0f172a;      /* slate-900 */
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Faixa superior com fade suave na borda inferior */
+.admin-hero {
+  background: linear-gradient(90deg, #818cf8 0%, #a78bfa 50%, #f472b6 100%);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  /* “suaviza” a base da faixa */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0));
+          mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0));
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* Faixa inferior com fade suave na borda superior */
+.admin-footer {
+  background: linear-gradient(90deg, #4207f1 0%, #f472b6 50%, #818cf8 100%);
+  border-top: 1px solid rgba(0,0,0,.06);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 80%, rgba(0,0,0,0));
+          mask-image: linear-gradient(to top, rgba(0,0,0,1) 80%, rgba(0,0,0,0));
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Dark mode (opcional) */
+html.dark .admin-bg {
+  background: #1e293b; /* slate-800 */
+  color: #f1f5f9;       /* slate-100 */
+}
+
+html.dark .admin-hero {
+  background: linear-gradient(90deg, #334155 0%, #475569 50%, #64748b 100%);
+  border-bottom-color: rgba(255,255,255,.08);
+}
+
+html.dark .admin-footer {
+  background: linear-gradient(90deg, #64748b 0%, #475569 50%, #334155 100%);
+  border-top-color: rgba(255,255,255,.08);
 }
